@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Person App</title>
+</head>
+<body>
+
+    <div>
+        <h2 id="LIST">All Persons in PersonList</h2>
+        <ul id="persons" />
+    </div>
+    <div>
+        <h2>Get by ID</h2>
+        <input type="text" id="GetID" />
+        <input type="button" value="GetById" id="getbyid"/>
+        <p id="person" />
+    </div>
+    <div>
+        <h2>Search by Last Name</h2>
+        <input type="text" id="SearchName" />
+        <input type="button" value="Search" id="searchbylastname" />
+        <p id="personsearch" />
+    </div>
+    <div>
+        <h2>Create Person</h2>
+        <input type="text" id="Id" size="5" />
+        <input type="text" id="FirstName" size="20" />
+        <input type="text" id="LastName" size="20" />
+        <input type="button" value="Create" id="create" />
+        <input type="button" value="Update" id="update" />
+        <p id="postResult" />
+    </div>
+    <div>
+        <h2>Delete Person</h2>
+        <input type="text" id="delID" size="5" />
+        <input type="button" value="Delete" id="deleteButton" />
+        <p id="persondel" />
+    </div>
+
+    <!--Funkcje js-->
+
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+    <script>
+
+        var uri = 'api/person';
+
+        function reload() {
+            // Send an AJAX request
+            $.getJSON(uri)
+                .done(function (data) {
+                    $("#persons").remove();
+                    $("<p id=\"persons\"/>").insertAfter("#LIST");
+                    // On success, 'data' contains a list of products.
+                    $.each(data, function (key, item) {
+                        // Add a list item for the product.
+                        $('<li>', { text: formatItem(item) }).appendTo($('#persons'));
+                    });
+                });
+        };
+
+        $(document).ready( reload() );
+
+
+        function formatItem(item) {
+            return item.Id + ' , ' + item.FirstName + ' , ' + item.LastName;
+        }
+
+        $('#create').click(function (e) {
+            $.ajax({
+                contentType: 'application/json',
+                type: "POST",
+                url: "api/person/" + $('#Id').val() + "_created",
+                data: JSON.stringify(     
+                    {
+                        Id: document.getElementById('Id').value,
+                        FirstName: document.getElementById('FirstName').value,
+                        LastName: document.getElementById('LastName').value
+                    }
+                ),
+                success: function (data, textStatus, jqXHR) {
+                    reload();
+                    $('#postResult').text(formatItem(data));
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $("#postResult").val(jqXHR.statusText);
+                }
+            });
+        });
+
+        $('#update').click(function (e) {
+            $.ajax({
+                contentType: 'application/json',
+                type: "PUT",
+                url: "api/person/" + $('#Id').val() + "_updated",
+                data: JSON.stringify(
+                    {
+                        Id: document.getElementById('Id').value,
+                        FirstName: document.getElementById('FirstName').value,
+                        LastName: document.getElementById('LastName').value
+                    }
+                ),
+                success: function (data, textStatus, jqXHR) {
+                    reload();
+                    $('#postResult').text(formatItem(data));
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $("#postResult").val(jqXHR.statusText);
+                }
+            });
+        });
+
+
+        $('#deleteButton').click(function (e) {
+            $.ajax({
+                contentType: 'application/json',
+                type: "DELETE",
+                url: "api/person/" + $('#delID').val() + "_deleted",
+
+                success: function (data, textStatus, jqXHR) {
+                    reload();
+                    $('#persondel').text(formatItem(data));
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $('#persondel').val(jqXHR.statusText);
+                }
+            });
+            });
+        
+
+        $('#getbyid').click(function (e) {
+            var id = $('#GetID').val();
+            $.getJSON(uri + '/' + id)
+                .done(function (data) {
+                    $('#person').text(formatItem(data));
+                })
+                .fail(function (jqXHR, textStatus, err) {
+                    $('#person').text('Error: ' + err);
+                });
+        });
+
+        $('#searchbylastname').click(function (e) {
+            var id = $('#SearchName').val();
+            $.getJSON(uri + '/' + id + '_')
+                .done(function (data) {
+                    $('#personsearch').text(formatItem(data));
+                })
+                .fail(function (jqXHR, textStatus, err) {
+                    $('#personsearch').text('Error: ' + err);
+                });
+        });
+
+    </script>
+</body>
+</html>
